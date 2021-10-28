@@ -7,6 +7,7 @@ use madmis\BitstampApi\Api;
 use madmis\BitstampApi\Model\MarketOrder;
 use madmis\BitstampApi\Model\OrderBook;
 use madmis\BitstampApi\Model\OrderBookCollection;
+use madmis\BitstampApi\Model\OrderStatus;
 use madmis\BitstampApi\Model\Ticker;
 use madmis\BitstampApi\Model\Transaction;
 use madmis\BitstampApi\Model\Withdrawal;
@@ -27,12 +28,12 @@ class PrivateEndpoint extends AbstractEndpoint implements EndpointInterface
     /**
      * @param string $pair
      * @param bool $mapping
-     * @return array|Ticker
+     * @return array|MarketOrder
      * @throws ClientException
      */
     public function buyMarketOrder(string $pair, bool $mapping = false, array $options = [])
     {
-        $apiUrn = $this->getApiUrn(['buy/market', $pair]);
+        $apiUrn = $this->getApiUrn(['buy/instant', $pair]);
         $options = $this->getSignature($options, $apiUrn . '/');
         $response = $this->sendRequest(
             Api::POST,
@@ -52,9 +53,9 @@ class PrivateEndpoint extends AbstractEndpoint implements EndpointInterface
     }
 
     /**
-     * @param string $pair
+     * @param string $acronym
      * @param bool $mapping
-     * @return array|Ticker
+     * @return array|Withdrawal
      * @throws ClientException
      */
     public function withdraw(string $acronym, bool $mapping = false, array $options = [])
@@ -71,6 +72,32 @@ class PrivateEndpoint extends AbstractEndpoint implements EndpointInterface
             $response = $this->deserializeItem(
                 $response,
                 Withdrawal::class
+            );
+
+        }
+
+        return $response;
+    }
+
+    /**
+     * @param bool $mapping
+     * @return array|OrderStatus
+     * @throws ClientException
+     */
+    public function orderStatus(bool $mapping = false, array $options = [])
+    {
+        $apiUrn = $this->getApiUrn(['order_status']);
+        $options = $this->getSignature($options, $apiUrn . '/');
+        $response = $this->sendRequest(
+            Api::POST,
+            $apiUrn,
+            $options
+        );
+
+        if ($mapping && $response) {
+            $response = $this->deserializeItem(
+                $response,
+                OrderStatus::class
             );
 
         }
