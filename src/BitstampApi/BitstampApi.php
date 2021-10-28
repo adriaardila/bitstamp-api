@@ -2,6 +2,7 @@
 
 namespace madmis\BitstampApi;
 
+use madmis\BitstampApi\Endpoint\PrivateEndpoint;
 use madmis\BitstampApi\Endpoint\PublicEndpoint;
 use madmis\ExchangeApi\Client\ClientInterface;
 use madmis\ExchangeApi\Client\GuzzleClient;
@@ -64,5 +65,15 @@ class BitstampApi
         return $this
             ->endpointFactory
             ->getEndpoint(PublicEndpoint::class, $this->client);
+    }
+
+    /**
+     * @return PrivateEndpoint|EndpointInterface
+     */
+    public function private(): PrivateEndpoint
+    {
+        return $this
+            ->endpointFactory
+            ->getEndpoint(PrivateEndpoint::class, $this->client);
     }
 }
