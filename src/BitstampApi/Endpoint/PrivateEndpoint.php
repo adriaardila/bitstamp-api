@@ -66,7 +66,7 @@ class PrivateEndpoint extends AbstractEndpoint implements EndpointInterface
         );
     }
 
-    private function getSignature($options): array
+    private function getSignature(array $options = []): array
     {
         $payload = "";
         $i = 0;
