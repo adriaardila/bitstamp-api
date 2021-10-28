@@ -9,6 +9,7 @@ use madmis\BitstampApi\Model\OrderBook;
 use madmis\BitstampApi\Model\OrderBookCollection;
 use madmis\BitstampApi\Model\Ticker;
 use madmis\BitstampApi\Model\Transaction;
+use madmis\BitstampApi\Model\Withdrawal;
 use madmis\ExchangeApi\Endpoint\AbstractEndpoint;
 use madmis\ExchangeApi\Endpoint\EndpointInterface;
 use madmis\ExchangeApi\Exception\ClientException;
@@ -31,10 +32,11 @@ class PrivateEndpoint extends AbstractEndpoint implements EndpointInterface
      */
     public function buyMarketOrder(string $pair, bool $mapping = false, array $options = [])
     {
-        $options = $this->getSignature($options);
+        $apiUrn = $this->getApiUrn(['buy/market', $pair]);
+        $options = $this->getSignature($options, $apiUrn . '/');
         $response = $this->sendRequest(
             Api::POST,
-            $this->getApiUrn(['buy/market', $pair]),
+            $apiUrn,
             $options
         );
 
@@ -42,6 +44,33 @@ class PrivateEndpoint extends AbstractEndpoint implements EndpointInterface
             $response = $this->deserializeItem(
                 $response,
                 MarketOrder::class
+            );
+
+        }
+
+        return $response;
+    }
+
+    /**
+     * @param string $pair
+     * @param bool $mapping
+     * @return array|Ticker
+     * @throws ClientException
+     */
+    public function withdraw(string $acronym, bool $mapping = false, array $options = [])
+    {
+        $apiUrn = $this->getApiUrn([$acronym . '_withdrawal']);
+        $options = $this->getSignature($options, $apiUrn . '/');
+        $response = $this->sendRequest(
+            Api::POST,
+            $apiUrn,
+            $options
+        );
+
+        if ($mapping && $response) {
+            $response = $this->deserializeItem(
+                $response,
+                Withdrawal::class
             );
 
         }
@@ -66,7 +95,7 @@ class PrivateEndpoint extends AbstractEndpoint implements EndpointInterface
         );
     }
 
-    private function getSignature(array $options = []): array
+    private function getSignature(array $options = [], string $apiUrn): array
     {
         $payload = "";
         $i = 0;
@@ -87,7 +116,7 @@ class PrivateEndpoint extends AbstractEndpoint implements EndpointInterface
         $message = 'BITSTAMP ' . $this->apiKey .
             'POST' .
             'www.bitstamp.net' .
-            '/api/v2/buy/market/btceur/' .
+            $apiUrn .
             $query .
             $content_type .
             $nonce .
