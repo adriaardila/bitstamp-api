@@ -74,6 +74,33 @@ class PrivateEndpoint extends AbstractEndpoint implements EndpointInterface
     }
 
     /**
+     * @param string $acronym
+     * @param bool $mapping
+     * @return array|Deposit
+     * @throws ClientException
+     */
+    public function deposit(string $acronym, bool $mapping = false, array $options = [])
+    {
+        $apiUrn = $this->getApiUrn([$acronym . '_address']);
+        $options = $this->getSignature($options, $apiUrn . '/');
+        $response = $this->sendRequest(
+            Api::POST,
+            $apiUrn,
+            $options
+        );
+
+        if ($mapping && $response) {
+            $response = $this->deserializeItem(
+                $response,
+                Deposit::class
+            );
+
+        }
+
+        return $response;
+    }
+
+    /**
      * @param bool $mapping
      * @return array|OrderStatus
      * @throws ClientException
@@ -110,7 +137,7 @@ class PrivateEndpoint extends AbstractEndpoint implements EndpointInterface
     protected function sendRequest(string $method, string $uri, array $options = []): array
     {
         $request = $this->client->createRequest($method, $uri . '/');
-
+        
         return $this->processResponse(
             $this->client->send($request, $options)
         );
@@ -125,6 +152,9 @@ class PrivateEndpoint extends AbstractEndpoint implements EndpointInterface
     {
         $payload = "";
         $i = 0;
+        if (!isset($options['form_params'])) {
+            $options['form_params'] = [];
+        }
         foreach ($options['form_params'] as $key => $param) {
             if ($i === 0) {
                 $payload .= $key . "=" . $param;
@@ -136,7 +166,11 @@ class PrivateEndpoint extends AbstractEndpoint implements EndpointInterface
         $bytes = random_bytes(18);
         $nonce = bin2hex($bytes);
         $timestamp = round(microtime(true) * 1000);
-        $content_type = 'application/x-www-form-urlencoded';
+        if(!empty($options['form_params'])) {
+            $content_type = 'application/x-www-form-urlencoded';
+        } else {
+            $content_type = '';
+        }
         $query = '';
 
         $message = 'BITSTAMP ' . $this->apiKey .
@@ -150,16 +184,21 @@ class PrivateEndpoint extends AbstractEndpoint implements EndpointInterface
             'v2' .
             $payload;
 
-        return [
+        $data = [
             'headers' => [
                 'X-Auth' => "BITSTAMP $this->apiKey",
                 'X-Auth-Signature' => hash_hmac("sha256", $message, $this->apiSecret),
                 'X-Auth-Nonce' => $nonce,
                 'X-Auth-Timestamp' => $timestamp,
                 'X-Auth-Version' => 'v2'
-            ],
-            'form_params' => $options['form_params']
+            ]
         ];
+
+        if(!empty($options['form_params'])) {
+            $data = array_merge($data, $options);
+        }
+
+        return $data;
     }
 
     /**
