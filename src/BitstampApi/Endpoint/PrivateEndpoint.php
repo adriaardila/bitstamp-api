@@ -122,6 +122,11 @@ class PrivateEndpoint extends AbstractEndpoint implements EndpointInterface
         );
     }
 
+    /**
+     * @param array $options
+     * @param string $apiUrn
+     * @return array
+     */
     private function getSignature(array $options = [], string $apiUrn): array
     {
         $payload = "";
@@ -163,6 +168,10 @@ class PrivateEndpoint extends AbstractEndpoint implements EndpointInterface
         ];
     }
 
+    /**
+     * @param string $apiKey
+     * @param string $apiSecret
+     */
     public function setApiKeyAndSecret(string $apiKey, string $apiSecret)
     {
         $this->apiKey = $apiKey;
