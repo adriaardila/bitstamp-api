@@ -2,22 +2,16 @@
 
 namespace madmis\BitstampApi\Endpoint;
 
-use Doctrine\Common\Collections\ArrayCollection;
 use madmis\BitstampApi\Api;
 use madmis\BitstampApi\Model\MarketOrder;
-use madmis\BitstampApi\Model\OrderBook;
-use madmis\BitstampApi\Model\OrderBookCollection;
 use madmis\BitstampApi\Model\OrderStatus;
-use madmis\BitstampApi\Model\Ticker;
-use madmis\BitstampApi\Model\Transaction;
 use madmis\BitstampApi\Model\Withdrawal;
 use madmis\ExchangeApi\Endpoint\AbstractEndpoint;
 use madmis\ExchangeApi\Endpoint\EndpointInterface;
 use madmis\ExchangeApi\Exception\ClientException;
-use Psr\Http\Message\ResponseInterface;
 
 /**
- * Class PublicEndpoint
+ * Class PrivateEndpoint
  * @package madmis\BitstampApi\Endpoint
  */
 class PrivateEndpoint extends AbstractEndpoint implements EndpointInterface
