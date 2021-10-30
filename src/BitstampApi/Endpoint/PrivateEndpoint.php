@@ -3,6 +3,7 @@
 namespace madmis\BitstampApi\Endpoint;
 
 use madmis\BitstampApi\Api;
+use madmis\BitstampApi\Model\CryptoTransaction;
 use madmis\BitstampApi\Model\MarketOrder;
 use madmis\BitstampApi\Model\OrderStatus;
 use madmis\BitstampApi\Model\Withdrawal;
@@ -127,6 +128,32 @@ class PrivateEndpoint extends AbstractEndpoint implements EndpointInterface
     }
 
     /**
+     * @param bool $mapping
+     * @return array|OrderStatus
+     * @throws ClientException
+     */
+    public function cryptoTransactions(bool $mapping = false, array $options = [])
+    {
+        $apiUrn = $this->getApiUrn(['crypto-transactions']);
+        $options = $this->getSignature($options, $apiUrn . '/');
+        $response = $this->sendRequest(
+            Api::POST,
+            $apiUrn,
+            $options
+        );
+
+        if ($mapping && $response) {
+            $response = $this->deserializeItem(
+                $response,
+                CryptoTransaction::class
+            );
+
+        }
+
+        return $response;
+    }
+
+    /**
      * @param string $method Http::GET|POST
      * @param string $uri
      * @param array $options Request options to apply to the given
@@ -137,7 +164,7 @@ class PrivateEndpoint extends AbstractEndpoint implements EndpointInterface
     protected function sendRequest(string $method, string $uri, array $options = []): array
     {
         $request = $this->client->createRequest($method, $uri . '/');
-        
+
         return $this->processResponse(
             $this->client->send($request, $options)
         );
